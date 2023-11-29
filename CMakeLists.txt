@@ -84,17 +84,49 @@ endif()
 
 set(GODOT_COMPILE_FLAGS )
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" OR "${CMAKE_CXX_COMPILER_FRONTEND_VARIANT}" STREQUAL "MSVC")
 	# using Visual Studio C++
 	set(GODOT_COMPILE_FLAGS "/EHsc") # /GF /MP
 
 	if(CMAKE_BUILD_TYPE MATCHES Debug)
 		set(GODOT_COMPILE_FLAGS "${GODOT_COMPILE_FLAGS} /MDd") # /Od /RTC1 /Zi
+		if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+			set(GODOT_COMPILE_FLAGS "${GODOT_COMPILE_FLAGS} -fstandalone-debug") # -fstandalone-debug
+		endif()
+
 	else()
 		set(GODOT_COMPILE_FLAGS "${GODOT_COMPILE_FLAGS} /MD /O2") # /Oy /GL /Gy
 		STRING(REGEX REPLACE "/RTC(su|[1su])" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 		string(REPLACE "/RTC1" "" CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
 	endif(CMAKE_BUILD_TYPE MATCHES Debug)
+
+	if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+		set(GODOT_COMPILE_FLAGS "${GODOT_COMPILE_FLAGS} /showFilenames") # /showFilenames
+
+		add_compile_options(
+		-Wno-c++98-compat
+		-Wno-c++98-compat-pedantic
+		-Wno-reserved-id-macro
+		-Wno-pragma-pack
+		-Wno-unknown-pragmas
+		-Wno-unused-command-line-argument
+		-Wno-old-style-cast
+		-Wno-gnu-anonymous-struct
+		-Wno-language-extension-token
+		-Wno-nested-anon-types
+		-Wno-reserved-id-macro
+		-Wno-double-promotion
+		-Wno-float-conversion
+		-Wno-implicit-float-conversion
+		-Wno-newline-eof
+		-Wno-shorten-64-to-32
+		-Wno-float-equal
+		-Wno-sign-conversion
+		-Wno-cast-align
+		-Wno-cast-qual
+		-Wno-implicit-int-conversion
+		-Wno-deprecated-declarations)
+	endif()
 
 	add_definitions(-DNOMINMAX)
 else()  # GCC/Clang
